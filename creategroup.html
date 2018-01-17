@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <title>CREAR SALÓN</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+<body>
+<h1>1 - Creación de salones</h1>
+<p>Se creará un salón (personGroup) para luego añadir personas a tal salón</p>
+<input id="salon" type="text" placeholder="Nombre del salón">
+<button id="trigger">Crear Salón</button>
+</br></br>
+<a class="btn btn-info" href="listgroups.html">Volver a tabla de Grupos</a>
+<script type="text/javascript">
+            var groupname = $("#salon").val();
+    $("#trigger").on("click",function(){
+        var str = '{"name":"'+groupname+'"}';
+        var req = JSON.parse(str);
+        var req2 = JSON.stringify(req);
+         var params = {
+            // Request parameters
+        };
+        $.ajax({
+            url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/"+groupname+"?"+ $.param(params),
+            beforeSend: function(xhrObj){
+                // Request headers
+                xhrObj.setRequestHeader("Content-Type","application/json");
+                xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","");
+            },
+            type: "PUT",
+            // Request body
+            data: req2,
+            statusCode:{
+                409: function(){
+                    alert("Ya existe un aula con el mismo nombre, por favor, escoja otro");
+                },
+                400: function(){
+                    alert("Nombre de aula demasiado largo, por favor, escoja otro");
+                }
+            }
+        })
+        .done(function(data) {
+            entrenarGrupo();
+            alert("SE CREÓ GRUPO CON ÉXITO");
+            window.location.assign("createperson.html?group="+groupname); 
+        })
+        .fail(function(data) {
+            alert("ERROR AL CREAR GRUPO: ASEGÚRESE DE QUE NO HAYA UN GRUPO CON EL MISMO NOMBRE O, REFRÉSQUE LA PÁGINA Y VUELVA A INTENTARLO");
+        });
+          
+    });
+
+    function entrenarGrupo(){
+        var params = {
+            // Request parameters
+        };
+      
+        $.ajax({
+            url: "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/persongroups/"+groupname+"/train?" + $.param(params),
+            beforeSend: function(xhrObj){
+                // Request headers
+                xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","d51f69b3fcb74199aac608a19b165a28");
+            },
+            type: "POST"
+        })
+        .done(function(data) {
+            alert("SE ENTRENÓ GRUPO EXITOSAMENTE: ESTE PASO ES DE SUMA IMPORTANCIA PARA COMENZAR A HACER COMPARACIONES DE ROSTROS");
+        })
+        .fail(function() {
+            alert("ERROR AL ENTRENAR GRUPO");
+        });
+    }
+</script>
+</body>
+</html>
+
